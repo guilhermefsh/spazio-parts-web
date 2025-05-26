@@ -1,0 +1,31 @@
+import { z } from "zod"
+
+export const productSchema = z.object({
+  name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres").max(100, "Nome deve ter no máximo 100 caracteres"),
+  description: z
+    .string()
+    .min(10, "Descrição deve ter pelo menos 10 caracteres")
+    .max(1000, "Descrição deve ter no máximo 1000 caracteres"),
+  price: z.number().min(0.01, "Preço deve ser maior que zero").max(999999.99, "Preço deve ser menor que R$ 999.999,99"),
+  category: z.string().min(1, "Categoria é obrigatória"),
+  images: z
+    .array(z.string().url("URL da imagem inválida"))
+    .min(1, "Pelo menos uma imagem é obrigatória")
+    .max(8, "Máximo de 8 imagens permitidas"),
+})
+
+export const loginSchema = z.object({
+  email: z.string().email("Email inválido").min(1, "Email é obrigatório"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres").min(1, "Senha é obrigatória"),
+})
+
+export const freightSchema = z.object({
+  cep: z
+    .string()
+    .regex(/^\d{8}$/, "CEP deve conter exatamente 8 dígitos")
+    .min(1, "CEP é obrigatório"),
+})
+
+export type ProductFormData = z.infer<typeof productSchema>
+export type LoginFormData = z.infer<typeof loginSchema>
+export type FreightFormData = z.infer<typeof freightSchema>
