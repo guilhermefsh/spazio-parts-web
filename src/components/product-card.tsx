@@ -25,9 +25,9 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.name}
           </h3>
           <p className="text-sm text-muted-foreground mb-3 capitalize flex-1 transition-colors duration-300">
-            {product.category?.replace("-", " ") || 'Uncategorized'}
+            {product.category ? product.category.replace("-", " ") : "Sem categoria"}
           </p>
-          <p className="text-lg font-bold text-foreground mt-auto  transition-colors duration-300">
+          <p className="text-lg font-bold text-gray-300 mt-auto  transition-colors duration-300">
             R$ {product.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
           </p>
         </div>

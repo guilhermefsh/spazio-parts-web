@@ -6,7 +6,7 @@ export const productSchema = z.object({
     .string()
     .min(10, "Descrição deve ter pelo menos 10 caracteres")
     .max(1000, "Descrição deve ter no máximo 1000 caracteres"),
-  price: z.number().min(0.01, "Preço deve ser maior que zero").max(999999.99, "Preço deve ser menor que R$ 999.999,99"),
+  price: z.string().min(0.01, "Preço deve ser maior que zero").max(999999.99, "Preço deve ser menor que R$ 999.999,99"),
   category: z.string().min(1, "Categoria é obrigatória"),
   images: z
     .array(z.string().url("URL da imagem inválida"))

@@ -4,37 +4,48 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { onAuthStateChange, signOut } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { LogOut, Package, Plus, Home } from "lucide-react"
 import Link from "next/link"
-import type { User } from "firebase/auth"
+import Image from "next/image"
 
 interface AdminLayoutProps {
   children: React.ReactNode
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<{ email: string } | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChange((user) => {
-      setUser(user)
-      setLoading(false)
+    const verifySession = async () => {
+      try {
+        const response = await fetch('/api/auth/verify')
+        const data = await response.json()
 
-      if (!user) {
-        router.push("/admin/login")
+        if (response.ok && data.verified) {
+          setUser(data.user)
+        } else {
+          router.push('/admin/login')
+        }
+      } catch {
+        router.push('/admin/login')
+      } finally {
+        setLoading(false)
       }
-    })
+    }
 
-    return () => unsubscribe()
+    verifySession()
   }, [router])
 
   const handleSignOut = async () => {
-    await signOut()
-    router.push("/admin/login")
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+      router.push('/admin/login')
+    } catch {
+      router.push('/admin/login')
+    }
   }
 
   if (loading) {
@@ -54,18 +65,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-6">
             <Link href="/admin" className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-r from-italia-green via-white to-italia-red rounded-full flex items-center justify-center">
-                <span className="text-black font-bold">AP</span>
-              </div>
               <div>
-                <h1 className="text-lg font-bold text-foreground">Admin Panel</h1>
-                <p className="text-xs text-muted-foreground">AutoParts Italia</p>
+                <Image src="/logo.jpg" alt="Logo" width={112} height={112} />
               </div>
+
             </Link>
 
             <nav className="hidden md:flex items-center space-x-4">
@@ -103,7 +110,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">{children}</main>
     </div>
   )

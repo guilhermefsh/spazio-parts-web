@@ -50,7 +50,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               Início
             </Link>
             <span className="mx-2">/</span>
-            <span className="capitalize">{product.category.replace("-", " ")}</span>
+            <span className="capitalize">{product.category ? product.category.replace("-", " ") : "Sem categoria"}</span>
             <span className="mx-2">/</span>
             <span className="text-foreground">{product.name}</span>
           </nav>

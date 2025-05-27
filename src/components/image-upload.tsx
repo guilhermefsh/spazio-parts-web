@@ -1,12 +1,11 @@
 "use client"
 
-import type React from "react"
 import { useState, useRef } from "react"
-import Image from "next/image"
-import { Upload, X, Plus, ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
+import { ImagePlus, X } from "lucide-react"
+import Image from "next/image"
+import { uploadImage } from "@/lib/storage"
 
 interface ImageUploadProps {
   images: string[]
@@ -14,194 +13,95 @@ interface ImageUploadProps {
   maxImages?: number
 }
 
-export default function ImageUpload({ images, onImagesChange, maxImages = 10 }: ImageUploadProps) {
-  const [dragOver, setDragOver] = useState(false)
-  const [urlInput, setUrlInput] = useState("")
+export default function ImageUpload({ images, onImagesChange, maxImages = 8 }: ImageUploadProps) {
+  const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileSelect = (files: FileList | null) => {
-    if (!files) return
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
 
-    const newImages: string[] = []
-    let processedFiles = 0
+    if (images.length + files.length > maxImages) {
+      alert(`Você pode fazer upload de no máximo ${maxImages} imagens`)
+      return
+    }
 
-    Array.from(files).forEach((file) => {
-      if (file.type.startsWith("image/")) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          if (e.target?.result) {
-            newImages.push(e.target.result as string)
-            processedFiles++
+    setUploading(true)
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const { url } = await uploadImage(file)
+        return url
+      })
 
-            if (processedFiles === files.length) {
-              const totalImages = [...images, ...newImages]
-              onImagesChange(totalImages.slice(0, maxImages))
-            }
-          }
-        }
-        reader.readAsDataURL(file)
-      } else {
-        processedFiles++
-        if (processedFiles === files.length && newImages.length > 0) {
-          const totalImages = [...images, ...newImages]
-          onImagesChange(totalImages.slice(0, maxImages))
-        }
-      }
-    })
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setDragOver(false)
-    handleFileSelect(e.dataTransfer.files)
-  }
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setDragOver(true)
-  }
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    setDragOver(false)
-  }
-
-  const removeImage = (index: number) => {
-    const newImages = images.filter((_, i) => i !== index)
-    onImagesChange(newImages)
-  }
-
-  const addImageUrl = () => {
-    if (urlInput.trim() && images.length < maxImages) {
-      // Validação básica de URL
-      try {
-        new URL(urlInput.trim())
-        onImagesChange([...images, urlInput.trim()])
-        setUrlInput("")
-      } catch {
-        alert("URL inválida. Por favor, insira uma URL válida.")
+      const newUrls = await Promise.all(uploadPromises)
+      onImagesChange([...images, ...newUrls])
+    } catch (error) {
+      console.error("Error uploading images:", error)
+      alert("Erro ao fazer upload das imagens")
+    } finally {
+      setUploading(false)
+      // Limpa o input para permitir selecionar os mesmos arquivos novamente
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
       }
     }
   }
 
-  const moveImage = (fromIndex: number, toIndex: number) => {
+  const handleRemoveImage = (index: number) => {
     const newImages = [...images]
-    const [movedImage] = newImages.splice(fromIndex, 1)
-    newImages.splice(toIndex, 0, movedImage)
+    newImages.splice(index, 1)
     onImagesChange(newImages)
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-foreground">
-          Imagens do Produto ({images.length}/{maxImages})
-        </label>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={images.length >= maxImages}
-        >
-          <Upload className="w-4 h-4 mr-2" />
-          Upload
-        </Button>
-      </div>
-
-      {/* Área de Upload */}
-      <Card
-        className={`border-2 border-dashed transition-colors ${
-          dragOver ? "border-primary bg-primary/5" : "border-border"
-        }`}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-      >
-        <CardContent className="p-8 text-center">
-          <ImageIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground mb-2">Arraste e solte imagens aqui ou clique para selecionar</p>
-          <p className="text-sm text-muted-foreground">Suporta: JPG, PNG, WebP (máx. 5MB cada)</p>
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => handleFileSelect(e.target.files)}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Adicionar por URL */}
-      <div className="flex space-x-2">
-        <Input
-          placeholder="Ou cole uma URL de imagem..."
-          value={urlInput}
-          onChange={(e) => setUrlInput(e.target.value)}
-          onKeyPress={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault()
-              addImageUrl()
-            }
-          }}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          onClick={addImageUrl}
-          disabled={!urlInput.trim() || images.length >= maxImages}
-        >
-          <Plus className="w-4 h-4" />
-        </Button>
-      </div>
-
-      {/* Preview das Imagens */}
-      {images.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {images.map((image, index) => (
-            <div key={index} className="relative group">
-              <div className="aspect-square relative bg-card rounded-lg overflow-hidden border border-border">
-                <Image
-                  src={image || "/placeholder.svg"}
-                  alt={`Preview ${index + 1}`}
-                  fill
-                  className="object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    target.src = "/placeholder.svg?height=200&width=200"
-                  }}
-                />
-
-                {/* Overlay com controles */}
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
-                  {index > 0 && (
-                    <Button type="button" variant="outline" size="sm" onClick={() => moveImage(index, index - 1)}>
-                      ←
-                    </Button>
-                  )}
-
-                  <Button type="button" variant="destructive" size="sm" onClick={() => removeImage(index)}>
-                    <X className="w-4 h-4" />
-                  </Button>
-
-                  {index < images.length - 1 && (
-                    <Button type="button" variant="outline" size="sm" onClick={() => moveImage(index, index + 1)}>
-                      →
-                    </Button>
-                  )}
-                </div>
-
-                {/* Indicador de imagem principal */}
-                {index === 0 && (
-                  <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
-                    Principal
-                  </div>
-                )}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {images.map((url, index) => (
+          <Card key={url} className="relative aspect-square">
+            <Image
+              src={url}
+              alt={`Product image ${index + 1}`}
+              fill
+              className="object-cover rounded-lg"
+            />
+            <Button
+              variant="destructive"
+              size="icon"
+              className="absolute top-2 right-2 h-6 w-6"
+              onClick={() => handleRemoveImage(index)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </Card>
+        ))}
+        {images.length < maxImages && (
+          <Card className="relative aspect-square">
+            <label
+              htmlFor="image-upload"
+              className="absolute inset-0 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors rounded-lg"
+            >
+              <div className="text-center">
+                <ImagePlus className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Adicionar imagem</span>
               </div>
-            </div>
-          ))}
-        </div>
+              <input
+                ref={fileInputRef}
+                id="image-upload"
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleImageUpload}
+                disabled={uploading}
+              />
+            </label>
+          </Card>
+        )}
+      </div>
+      {uploading && (
+        <p className="text-sm text-muted-foreground">
+          Fazendo upload das imagens...
+        </p>
       )}
     </div>
   )

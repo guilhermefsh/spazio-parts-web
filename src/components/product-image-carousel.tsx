@@ -26,7 +26,6 @@ export default function ProductImageCarousel({ images, productName }: ProductIma
 
   return (
     <div className="space-y-4">
-      {/* Imagem Principal */}
       <div className="relative aspect-square bg-card rounded-lg overflow-hidden group">
         <Image
           src={images[currentImage]?.url || "/placeholder.svg"}
@@ -35,7 +34,6 @@ export default function ProductImageCarousel({ images, productName }: ProductIma
           className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
 
-        {/* Botões de Navegação */}
         {images.length > 1 && (
           <>
             <Button
@@ -57,7 +55,6 @@ export default function ProductImageCarousel({ images, productName }: ProductIma
           </>
         )}
 
-        {/* Botões de Ação */}
         <div className="absolute top-2 right-2 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <Button
             variant="outline"
@@ -87,7 +84,6 @@ export default function ProductImageCarousel({ images, productName }: ProductIma
           </Dialog>
         </div>
 
-        {/* Indicador de Imagem */}
         {images.length > 1 && (
           <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-background/80 rounded-full px-3 py-1">
             <span className="text-sm font-medium">
@@ -97,7 +93,6 @@ export default function ProductImageCarousel({ images, productName }: ProductIma
         )}
       </div>
 
-      {/* Miniaturas */}
       {images.length > 1 && (
         <div className="flex space-x-2 overflow-x-auto pb-2">
           {images.map((image, index) => (

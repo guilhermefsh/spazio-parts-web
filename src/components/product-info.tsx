@@ -12,14 +12,12 @@ export default function ProductInfo({ product }: ProductInfoProps) {
   const price = convertPriceToNumber(product.price)
   return (
     <div className="space-y-6">
-      {/* Título e Categoria */}
       <div>
         <Badge variant="secondary" className="mb-3 capitalize">
-          {product.category.replace("-", " ")}
+          {product.category ? product.category.replace("-", " ") : "Sem categoria"}
         </Badge>
         <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">{product.name}</h1>
 
-        {/* Avaliação */}
         <div className="flex items-center space-x-2 mb-4">
           <div className="flex items-center">
             {[...Array(5)].map((_, i) => (
@@ -29,7 +27,6 @@ export default function ProductInfo({ product }: ProductInfoProps) {
           <span className="text-sm text-muted-foreground">(4.8) • 127 avaliações</span>
         </div>
 
-        {/* Preço */}
         <div className="mb-6">
           <div className="flex items-baseline space-x-2">
             <span className="text-4xl font-bold text-foreground">
@@ -45,7 +42,6 @@ export default function ProductInfo({ product }: ProductInfoProps) {
 
       <Separator />
 
-      {/* Descrição */}
       <div>
         <h3 className="text-xl font-semibold text-foreground mb-3">Descrição do Produto</h3>
         <p className="text-muted-foreground leading-relaxed">{product.description}</p>
@@ -53,7 +49,6 @@ export default function ProductInfo({ product }: ProductInfoProps) {
 
       <Separator />
 
-      {/* Características */}
       <div>
         <h3 className="text-xl font-semibold text-foreground mb-4">Características</h3>
         <div className="grid grid-cols-2 gap-4">

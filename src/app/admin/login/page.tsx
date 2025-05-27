@@ -3,7 +3,6 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
-import { signIn } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -33,14 +32,23 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      const { user, error: signInError } = await signIn(data.email, data.password)
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
 
-      if (user) {
+      const result = await response.json()
+
+      if (response.ok && result.user) {
         router.push("/admin")
       } else {
-        setError("root", { message: signInError || "Erro ao fazer login" })
+        setError("root", { message: result.error || "Erro ao fazer login" })
       }
     } catch (error) {
+      console.error('Login error:', error)
       setError("root", { message: "Erro inesperado. Tente novamente." })
     }
   }
