@@ -12,6 +12,7 @@ export const productSchema = z.object({
     .array(z.string().url("URL da imagem inválida"))
     .min(1, "Pelo menos uma imagem é obrigatória")
     .max(8, "Máximo de 8 imagens permitidas"),
+  mercadoPago: z.string().url("URL do Mercado Pago inválida").optional(),
 })
 
 export const loginSchema = z.object({

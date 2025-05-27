@@ -1,6 +1,6 @@
 import type { Product } from './types'
 
-export async function fetchProduct(id: string): Promise<Product> {
+export async function fetchProductById(id: string): Promise<Product> {
     const res = await fetch(`/api/products/${id}`, {
         cache: 'no-store'
     })

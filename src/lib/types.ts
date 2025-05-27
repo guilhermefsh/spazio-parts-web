@@ -12,7 +12,7 @@ export interface Product {
   uid?: string
   whatsapp?: string
   owner?: string
-  mercadoPago?: boolean
+  mercadoPago?: string
   frete?: boolean
 }
 

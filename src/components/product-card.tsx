@@ -1,12 +1,15 @@
 import Image from "next/image"
 import Link from "next/link"
 import type { Product } from "@/lib/types"
+import { convertPriceToNumber } from "@/utils/functions/convertPriceToNumber"
 
 interface ProductCardProps {
   product: Product
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const price = convertPriceToNumber(product.price)
+
   return (
     <Link href={`/produto/${product.id}`}>
       <div className="bg-card rounded-lg overflow-hidden border border-border hover:border-transparent transition-all duration-300 group h-full flex flex-col relative">
@@ -17,6 +20,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             src={product.images[0]?.url || "/placeholder.svg?height=300&width=300"}
             alt={product.name}
             fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
         </div>
@@ -28,7 +32,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.category ? product.category.replace("-", " ") : "Sem categoria"}
           </p>
           <p className="text-lg font-bold text-gray-300 mt-auto  transition-colors duration-300">
-            R$ {product.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+            R$ {price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
           </p>
         </div>
       </div>

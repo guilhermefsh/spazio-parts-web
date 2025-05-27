@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import AdminLayout from "@/components/admin-layout"
-import { getProducts, deleteProduct } from "@/lib/products"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -11,23 +10,32 @@ import Link from "next/link"
 import Image from "next/image"
 import type { Product } from "@/lib/types"
 import { ConfirmationModal } from "@/components/ui/confirmation-modal"
+import ProductSkeleton from "@/components/product-skeleton"
 
 export default function AdminPage() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [productToDelete, setProductToDelete] = useState<string | null>(null)
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('/api/products', {
+        cache: 'no-store'
+      })
+      if (!response.ok) throw new Error('Failed to fetch products')
+      const data = await response.json()
+      setProducts(data.products)
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    loadProducts()
+    fetchProducts()
   }, [])
-
-  const loadProducts = async () => {
-    setLoading(true)
-    const productsData = await getProducts()
-    setProducts(productsData)
-    setLoading(false)
-  }
 
   const handleDeleteClick = (id: string) => {
     setProductToDelete(id)
@@ -37,25 +45,26 @@ export default function AdminPage() {
   const handleDeleteConfirm = async () => {
     if (!productToDelete) return
 
-    const { error } = await deleteProduct(productToDelete)
-    if (!error) {
+    try {
+      const response = await fetch(`/api/products/${productToDelete}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to delete product')
+      }
+
       setProducts(products.filter((p) => p.id !== productToDelete))
-    } else {
-      alert("Erro ao excluir produto: " + error)
+      setDeleteModalOpen(false)
+      setProductToDelete(null)
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Erro ao excluir produto')
     }
-    setDeleteModalOpen(false)
-    setProductToDelete(null)
   }
 
   if (loading) {
-    return (
-      <AdminLayout>
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando produtos...</p>
-        </div>
-      </AdminLayout>
-    )
+    return <ProductSkeleton />
   }
 
   return (
@@ -95,6 +104,7 @@ export default function AdminPage() {
                 src={product.images[0]?.url || "/placeholder.svg?height=300&width=300"}
                 alt={product.name}
                 fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 className="object-cover"
               />
             </div>

@@ -32,6 +32,7 @@ const fetchProduct = (id: string) => {
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const { product } = use(fetchProduct(id))
+  // const relatedProducts: Product[] = [] // TODO: Fetch related products based on category or other criteria
 
   return (
     <div className="min-h-screen bg-background">
@@ -67,8 +68,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           </div>
         </div>
 
-        {/* Produtos Relacionados
-        {relatedProducts.length > 0 && <RelatedProducts products={relatedProducts} />} */}
+        <h2 className="text-2xl font-bold mb-6">Produtos Relacionados</h2>
+        {/* ! feature */}
+        {/* {relatedProducts.length > 0 && <RelatedProducts products={relatedProducts} />} */}
       </main>
 
       <Footer />

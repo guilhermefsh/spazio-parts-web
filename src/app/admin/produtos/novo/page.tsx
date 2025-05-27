@@ -12,10 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import AdminLayout from "@/components/admin-layout"
-import { createProduct } from "@/lib/products"
 import { productSchema, type ProductFormData } from "@/lib/validations"
 import { categories } from "@/lib/types"
-import type { PartsImageProps } from "@/lib/types"
 import ImageUpload from "@/components/image-upload"
 
 export default function NewProductPage() {
@@ -29,6 +27,7 @@ export default function NewProductPage() {
       price: "0",
       category: "",
       images: [],
+      mercadoPago: "",
     },
   })
 
@@ -36,23 +35,21 @@ export default function NewProductPage() {
 
   const onSubmit = async (data: ProductFormData) => {
     try {
-      const images: PartsImageProps[] = data.images.map(url => ({
-        name: url.split('/').pop() || 'image',
-        uid: Math.random().toString(36).substring(7),
-        url,
-      }))
-
-      const { error } = await createProduct({
-        ...data,
-        price: parseFloat(data.price),
-        images,
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
       })
 
-      if (error) {
-        throw new Error(error)
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to create product')
       }
 
-      router.push("/admin")
+      router.refresh()
+      router.replace("/admin")
     } catch (error) {
       console.error("Error creating product:", error)
     }
@@ -165,6 +162,24 @@ export default function NewProductPage() {
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="mercadoPago"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Link do Mercado Pago</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="url"
+                        placeholder="https://www.mercadopago.com.br/..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}

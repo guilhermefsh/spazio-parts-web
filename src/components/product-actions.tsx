@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { freightSchema, type FreightFormData } from "@/lib/validations"
 import type { Product } from "@/lib/types"
 import { convertPriceToNumber } from "@/utils/functions/convertPriceToNumber"
+import { generateWhatsAppUrl } from "@/utils/functions/generateWhatsAppUrl"
 
 interface ProductActionsProps {
   product: Product
@@ -40,28 +41,28 @@ export default function ProductActions({ product }: ProductActionsProps) {
   })
 
   const handleWhatsApp = () => {
-    const message = `Olá! Tenho interesse no produto: ${product.name} - R$ ${product.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-    
-    Quantidade: ${quantity}
-    Total: R$ ${(price * quantity).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-
-    Gostaria de mais informações!`
-
-    const whatsappUrl = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
-    window.open(whatsappUrl, "_blank")
+    return generateWhatsAppUrl({
+      productName: product.name,
+      price: product.price,
+      quantity,
+      totalPrice: price * quantity
+    })
   }
 
   const handleMercadoPago = () => {
+    if (product.mercadoPago) {
+      return product.mercadoPago
+    }
     const totalPrice = product.price * quantity
     alert(
-      `Redirecionando para o Mercado Pago...\nTotal: R$ ${totalPrice.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+      `Link do Mercado Pago não disponível.\nTotal: R$ ${totalPrice.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
     )
+    return "#"
   }
 
   const onFreightSubmit = async (data: FreightFormData) => {
     setLoadingFreight(true)
 
-    // Simula chamada para API dos Correios
     setTimeout(() => {
       const mockOptions: FreightOption[] = [
         {
@@ -95,7 +96,6 @@ export default function ProductActions({ product }: ProductActionsProps) {
 
   return (
     <div className="space-y-6">
-      {/* Seletor de Quantidade */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">Quantidade</CardTitle>
@@ -128,7 +128,6 @@ export default function ProductActions({ product }: ProductActionsProps) {
         </CardContent>
       </Card>
 
-      {/* Cálculo de Frete */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center">
@@ -192,21 +191,26 @@ export default function ProductActions({ product }: ProductActionsProps) {
         </CardContent>
       </Card>
 
-      {/* Botões de Ação */}
       <div className="space-y-3">
-        <Button onClick={handleMercadoPago} className="w-full bg-blue-500 hover:bg-blue-600" size="lg">
+        <a
+          href={handleMercadoPago()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center w-full bg-blue-500 hover:bg-blue-600 text-white h-11 px-4 rounded-md font-medium transition-colors"
+        >
           <CreditCard className="w-5 h-5 mr-2" />
           Comprar via Mercado Pago
-        </Button>
+        </a>
 
-        <Button
-          onClick={handleWhatsApp}
-          className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground"
-          size="lg"
+        <a
+          href={handleWhatsApp()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground h-11 px-4 rounded-md font-medium transition-colors"
         >
           <MessageCircle className="w-5 h-5 mr-2" />
           Falar no WhatsApp
-        </Button>
+        </a>
 
         <div className="grid grid-cols-2 gap-2">
           <Button variant="outline" size="sm" className="w-full">
@@ -219,7 +223,6 @@ export default function ProductActions({ product }: ProductActionsProps) {
         </div>
       </div>
 
-      {/* Informações de Segurança */}
       <Card className="bg-muted/50">
         <CardContent className="pt-6">
           <div className="space-y-2 text-sm">
@@ -229,7 +232,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-secondary rounded-full"></div>
-              <span className="text-muted-foreground">Garantia de 12 meses</span>
+              <span className="text-muted-foreground">Garantia de 6 meses</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-secondary rounded-full"></div>

@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Star, Shield, Truck, Award } from "lucide-react"
+import { Shield, Truck, Award, Headphones } from "lucide-react"
 import type { Product } from "@/lib/types"
 import { convertPriceToNumber } from "@/utils/functions/convertPriceToNumber"
 
@@ -18,14 +18,16 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         </Badge>
         <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">{product.name}</h1>
 
-        <div className="flex items-center space-x-2 mb-4">
+        {/* ! feature */}
+
+        {/* <div className="flex items-center space-x-2 mb-4">
           <div className="flex items-center">
             {[...Array(5)].map((_, i) => (
               <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
             ))}
           </div>
           <span className="text-sm text-muted-foreground">(4.8) • 127 avaliações</span>
-        </div>
+        </div> */}
 
         <div className="mb-6">
           <div className="flex items-baseline space-x-2">
@@ -56,7 +58,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             <Shield className="w-5 h-5 text-italia-green" />
             <div>
               <p className="font-medium text-foreground">Garantia</p>
-              <p className="text-sm text-muted-foreground">12 meses</p>
+              <p className="text-sm text-muted-foreground">6 meses</p>
             </div>
           </div>
 
@@ -77,10 +79,10 @@ export default function ProductInfo({ product }: ProductInfoProps) {
           </div>
 
           <div className="flex items-center space-x-3 p-3 bg-card rounded-lg border border-border">
-            <Star className="w-5 h-5 text-italia-green" />
+            <Headphones className="w-5 h-5 text-italia-green" />
             <div>
-              <p className="font-medium text-foreground">Avaliação</p>
-              <p className="text-sm text-muted-foreground">4.8/5.0</p>
+              <p className="font-medium text-foreground">Suporte</p>
+              <p className="text-sm text-muted-foreground">7 dias por semana</p>
             </div>
           </div>
         </div>

@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useState, use } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { use } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
@@ -13,10 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import AdminLayout from "@/components/admin-layout"
-import { getProduct, updateProduct } from "@/lib/products"
 import { productSchema, type ProductFormData } from "@/lib/validations"
 import { categories } from "@/lib/types"
-import type { Product, PartsImageProps } from "@/lib/types"
+import type { Product } from "@/lib/types"
 import ImageUpload from "@/components/image-upload"
 
 type PageParams = {
@@ -37,26 +37,32 @@ export default function EditProductPage({ params }: { params: Promise<PageParams
       price: "0",
       category: "",
       images: [],
+      mercadoPago: "",
     },
   })
 
   const watchedImages = form.watch("images")
 
-  useEffect(() => {
-    loadProduct()
-  }, [id])
-
-  const loadProduct = async () => {
+  const loadProduct = useCallback(async () => {
     try {
-      const productData = await getProduct(id)
-      if (productData) {
-        setProduct(productData)
+      const response = await fetch(`/api/products/${id}`, {
+        cache: 'no-store'
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch product')
+      }
+
+      const data = await response.json()
+      if (data.product) {
+        setProduct(data.product)
         form.reset({
-          name: productData.name,
-          description: productData.description,
-          price: productData.price.toString(),
-          category: productData.category,
-          images: productData.images.map(img => img.url),
+          name: data.product.name,
+          description: data.product.description,
+          price: data.product.price.toString(),
+          category: data.product.category,
+          images: data.product.images.map((img: { url: string }) => img.url),
+          mercadoPago: data.product.mercadoPago || "",
         })
       }
     } catch (error) {
@@ -64,27 +70,29 @@ export default function EditProductPage({ params }: { params: Promise<PageParams
     } finally {
       setLoading(false)
     }
-  }
+  }, [id, form])
+
+  useEffect(() => {
+    loadProduct()
+  }, [loadProduct])
 
   const onSubmit = async (data: ProductFormData) => {
     try {
-      const images: PartsImageProps[] = data.images.map(url => ({
-        name: url.split('/').pop() || 'image',
-        uid: Math.random().toString(36).substring(7),
-        url,
-      }))
-
-      const { error } = await updateProduct(id, {
-        ...data,
-        price: parseFloat(data.price),
-        images,
+      const response = await fetch(`/api/products/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
       })
 
-      if (error) {
-        throw new Error(error)
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to update product')
       }
 
-      router.push("/admin")
+      router.refresh()
+      router.replace("/admin")
     } catch (error) {
       console.error("Error updating product:", error)
     }
@@ -187,7 +195,7 @@ export default function EditProductPage({ params }: { params: Promise<PageParams
                           onChange={(e) => {
                             const value = e.target.value.replace(/\D/g, '')
                             const number = Number(value) / 100
-                            field.onChange(number)
+                            field.onChange(number.toFixed(2))
                           }}
                         />
                       </FormControl>
@@ -224,6 +232,24 @@ export default function EditProductPage({ params }: { params: Promise<PageParams
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="mercadoPago"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Link do Mercado Pago</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="url"
+                        placeholder="https://www.mercadopago.com.br/..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
