@@ -1,6 +1,6 @@
 "use client"
 
-import { use } from "react"
+import { use, useState } from "react"
 import Header from "@/components/header"
 import ProductImageCarousel from "@/components/product-image-carousel"
 import ProductActions from "@/components/product-actions"
@@ -32,6 +32,7 @@ const fetchProduct = (id: string) => {
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const { product } = use(fetchProduct(id))
+  const [quantity, setQuantity] = useState(1)
   // const relatedProducts: Product[] = [] // TODO: Fetch related products based on category or other criteria
 
   return (
@@ -64,11 +65,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
           <div className="space-y-8">
             <ProductInfo product={product} />
-            <ProductActions product={product} />
+            <ProductActions
+              product={product}
+              onShippingSelect={() => { }}
+              quantity={quantity}
+              onQuantityChange={setQuantity}
+            />
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold mb-6">Produtos Relacionados</h2>
         {/* ! feature */}
         {/* {relatedProducts.length > 0 && <RelatedProducts products={relatedProducts} />} */}
       </main>

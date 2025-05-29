@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
-import { MessageCircle, CreditCard, Truck, MapPin, Calculator } from "lucide-react"
+import { MessageCircle, CreditCard, Truck, Calculator } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,9 +14,13 @@ import { freightSchema, type FreightFormData } from "@/lib/validations"
 import type { Product } from "@/lib/types"
 import { convertPriceToNumber } from "@/utils/functions/convertPriceToNumber"
 import { generateWhatsAppUrl } from "@/utils/functions/generateWhatsAppUrl"
+import { useMercadoPago } from "@/hooks/useMercadoPago"
 
 interface ProductActionsProps {
   product: Product
+  onShippingSelect: (shipping: { name: string; price: number; estimatedDays: number } | null) => void
+  quantity: number
+  onQuantityChange: (quantity: number) => void
 }
 
 interface FreightOption {
@@ -26,10 +30,15 @@ interface FreightOption {
   type: "standard" | "express"
 }
 
-export default function ProductActions({ product }: ProductActionsProps) {
+export default function ProductActions({
+  product,
+  quantity,
+  onQuantityChange, onShippingSelect
+}: ProductActionsProps) {
   const [freightOptions, setFreightOptions] = useState<FreightOption[]>([])
   const [loadingFreight, setLoadingFreight] = useState(false)
-  const [quantity, setQuantity] = useState(1)
+  const [selectedShipping, setSelectedShipping] = useState<{ name: string; price: number; estimatedDays: number } | null>(null)
+  const { handleCheckout } = useMercadoPago()
 
   const price = convertPriceToNumber(product.price)
 
@@ -49,18 +58,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
     })
   }
 
-  const handleMercadoPago = () => {
-    if (product.mercadoPago) {
-      return product.mercadoPago
-    }
-    const totalPrice = product.price * quantity
-    alert(
-      `Link do Mercado Pago não disponível.\nTotal: R$ ${totalPrice.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
-    )
-    return "#"
-  }
-
-  const onFreightSubmit = async (data: FreightFormData) => {
+  const onFreightSubmit = async () => {
     setLoadingFreight(true)
 
     setTimeout(() => {
@@ -89,6 +87,16 @@ export default function ProductActions({ product }: ProductActionsProps) {
     }, 1500)
   }
 
+  const handleShippingSelect = (option: FreightOption) => {
+    const shipping = {
+      name: option.name,
+      price: option.price,
+      estimatedDays: parseInt(option.days.split(" ")[0])
+    };
+    setSelectedShipping(shipping);
+    onShippingSelect(shipping);
+  }
+
   const formatCep = (value: string) => {
     const numbers = value.replace(/\D/g, "")
     return numbers.slice(0, 8)
@@ -105,13 +113,13 @@ export default function ProductActions({ product }: ProductActionsProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
               disabled={quantity <= 1}
             >
               -
             </Button>
             <span className="text-xl font-semibold w-12 text-center">{quantity}</span>
-            <Button variant="outline" size="sm" onClick={() => setQuantity(quantity + 1)}>
+            <Button variant="outline" size="sm" onClick={() => onQuantityChange(quantity + 1)}>
               +
             </Button>
             <div className="ml-auto text-right">
@@ -121,7 +129,6 @@ export default function ProductActions({ product }: ProductActionsProps) {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
-
               </p>
             </div>
           </div>
@@ -166,7 +173,11 @@ export default function ProductActions({ product }: ProductActionsProps) {
               <Separator />
               <h4 className="font-medium text-foreground">Opções de entrega:</h4>
               {freightOptions.map((option, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-muted rounded-lg cursor-pointer hover:bg-muted/80"
+                  onClick={() => handleShippingSelect(option)}
+                >
                   <div className="flex items-center space-x-3">
                     <Truck className="w-4 h-4 text-muted-foreground" />
                     <div>
@@ -191,39 +202,39 @@ export default function ProductActions({ product }: ProductActionsProps) {
         </CardContent>
       </Card>
 
-      <div className="space-y-3">
-        <a
-          href={handleMercadoPago()}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center w-full bg-blue-500 hover:bg-blue-600 text-white h-11 px-4 rounded-md font-medium transition-colors"
-        >
-          <CreditCard className="w-5 h-5 mr-2" />
-          Comprar via Mercado Pago
-        </a>
+      <Button
+        onClick={() => handleCheckout({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          quantity,
+          mercadoPago: product.mercadoPago
+        }, selectedShipping || undefined)}
+        className="w-full bg-blue-500 hover:bg-blue-600 text-white h-11 px-4 rounded-md font-medium transition-colors"
+      >
+        <CreditCard className="w-5 h-5 mr-2" />
+        Comprar via Mercado Pago
+      </Button>
 
-        <a
-          href={handleWhatsApp()}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground h-11 px-4 rounded-md font-medium transition-colors"
-        >
-          <MessageCircle className="w-5 h-5 mr-2" />
-          Falar no WhatsApp
-        </a>
+      <Button
+        onClick={() => window.open(handleWhatsApp(), '_blank')}
+        className="flex items-center justify-center w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground h-11 px-4 rounded-md font-medium transition-colors"
+      >
+        <MessageCircle className="w-5 h-5 mr-2" />
+        Falar no WhatsApp
+      </Button>
+      {/* features */}
+      {/* <div className="grid grid-cols-2 gap-2">
+        <Button variant="outline" size="sm" className="w-full">
+          <MapPin className="w-4 h-4 mr-2" />
+          Ver na loja
+        </Button>
+        <Button variant="outline" size="sm" className="w-full">
+          Adicionar à lista
+        </Button>
+      </div> */}
 
-        <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" size="sm" className="w-full">
-            <MapPin className="w-4 h-4 mr-2" />
-            Ver na loja
-          </Button>
-          <Button variant="outline" size="sm" className="w-full">
-            Adicionar à lista
-          </Button>
-        </div>
-      </div>
-
-      <Card className="bg-muted/50">
+      <Card>
         <CardContent className="pt-6">
           <div className="space-y-2 text-sm">
             <div className="flex items-center space-x-2">
