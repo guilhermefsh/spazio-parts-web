@@ -3,7 +3,6 @@ import { signIn } from '@/lib/auth'
 import { auth } from 'firebase-admin'
 import { initFirebaseAdmin } from '@/lib/firebase-admin'
 
-// Initialize Firebase Admin
 initFirebaseAdmin()
 
 export async function POST(request: Request) {
@@ -35,12 +34,10 @@ export async function POST(request: Request) {
             )
         }
 
-        // Create session cookie
         const idToken = await user.getIdToken()
         const expiresIn = 60 * 60 * 24 * 7 * 1000 // 1 week
         const sessionCookie = await auth().createSessionCookie(idToken, { expiresIn })
 
-        // Set cookie
         const response = NextResponse.json({ user })
         response.cookies.set('session', sessionCookie, {
             maxAge: expiresIn,

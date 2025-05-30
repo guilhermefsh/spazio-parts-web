@@ -3,7 +3,6 @@ import { cookies } from 'next/headers'
 import { auth } from 'firebase-admin'
 import { initFirebaseAdmin } from '@/lib/firebase-admin'
 
-// Initialize Firebase Admin
 initFirebaseAdmin()
 
 export async function GET() {
@@ -18,7 +17,6 @@ export async function GET() {
             )
         }
 
-        // Verify the session cookie
         const decodedClaims = await auth().verifySessionCookie(session, true)
 
         return NextResponse.json({

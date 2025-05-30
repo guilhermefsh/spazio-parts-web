@@ -88,7 +88,7 @@ export default function Footer() {
 
               <div className="flex space-x-3 pt-2">
                 <a
-                  href="https://instagram.com/autopartsitalia"
+                  href={`https://instagram.com/${process.env.NEXT_PUBLIC_INSTAGRAM}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center hover:scale-110 transition-transform"
@@ -96,7 +96,7 @@ export default function Footer() {
                   <Instagram className="w-4 h-4 text-white" />
                 </a>
                 <a
-                  href="https://wa.me/5511999999999"
+                  href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent("Olá, vim através do site, gostaria de saber mais sobre os produtos.")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center hover:scale-110 transition-transform"

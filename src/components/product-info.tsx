@@ -38,7 +38,8 @@ export default function ProductInfo({ product }: ProductInfoProps) {
               R$ {(price * 1.2).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </span>
           </div>
-          <p className="text-sm text-green-500 font-medium">Economize 20% no pagamento à vista</p>
+          {/* feature */}
+          {/* <p className="text-sm text-green-500 font-medium">Economize 20% no pagamento à vista</p> */}
         </div>
       </div>
 

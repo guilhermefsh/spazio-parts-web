@@ -1,6 +1,7 @@
 "use client"
 
-import { use, useState } from "react"
+import { use, useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import Header from "@/components/header"
 import ProductCard from "@/components/product-card"
 import ProductFilters from "@/components/product-filters"
@@ -16,6 +17,14 @@ const fetchProducts = fetch('/api/products').then(res => {
 function ProductList() {
   const { products: fetchedProducts } = use(fetchProducts)
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(fetchedProducts)
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const category = searchParams.get('categoria')
+    if (category) {
+      handleCategoryChange(category)
+    }
+  }, [searchParams])
 
   const handleSearchChange = (search: string) => {
     const filtered = fetchedProducts.filter(
