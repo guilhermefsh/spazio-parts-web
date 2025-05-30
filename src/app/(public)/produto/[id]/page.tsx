@@ -67,7 +67,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <ProductInfo product={product} />
             <ProductActions
               product={product}
-              onShippingSelect={() => { }}
               quantity={quantity}
               onQuantityChange={setQuantity}
             />

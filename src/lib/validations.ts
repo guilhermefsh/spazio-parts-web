@@ -13,6 +13,12 @@ export const productSchema = z.object({
     .min(1, "Pelo menos uma imagem é obrigatória")
     .max(8, "Máximo de 8 imagens permitidas"),
   mercadoPago: z.string().url("URL do Mercado Pago inválida").optional(),
+  weight: z.number({ required_error: "Peso deve ser maior que zero" }).min(0.1, "Peso deve ser maior que zero"),
+  dimensions: z.object({
+    length: z.number({ required_error: "Comprimento é obrigatório" }).min(0.1, "Comprimento deve ser maior que zero"),
+    width: z.number({ required_error: "Largura é obrigatória" }).min(0.1, "Largura deve ser maior que zero"),
+    height: z.number({ required_error: "Altura é obrigatória" }).min(0.1, "Altura deve ser maior que zero")
+  }),
 })
 
 export const loginSchema = z.object({
@@ -23,8 +29,7 @@ export const loginSchema = z.object({
 export const freightSchema = z.object({
   cep: z
     .string()
-    .regex(/^\d{8}$/, "CEP deve conter exatamente 8 dígitos")
-    .min(1, "CEP é obrigatório"),
+    .max(9, "CEP deve conter exatamente 8 dígitos")
 })
 
 export const addressSchema = z.object({

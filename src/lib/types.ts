@@ -14,6 +14,12 @@ export interface Product {
   owner?: string
   mercadoPago?: string
   frete?: boolean
+  weight?: number
+  dimensions?: {
+    length: number
+    width: number
+    height: number
+  }
 }
 
 export interface PartsImageProps {

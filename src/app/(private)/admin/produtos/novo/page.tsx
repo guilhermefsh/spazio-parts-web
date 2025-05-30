@@ -28,6 +28,12 @@ export default function NewProductPage() {
       category: "",
       images: [],
       mercadoPago: "",
+      weight: undefined,
+      dimensions: {
+        length: undefined,
+        width: undefined,
+        height: undefined
+      }
     },
   })
 
@@ -115,17 +121,18 @@ export default function NewProductPage() {
                   name="price"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Preço</FormLabel>
+                      <FormLabel>Preço (R$)</FormLabel>
                       <FormControl>
                         <Input
-                          type="text"
-                          placeholder="0,00"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
                           {...field}
-                          value={field.value}
+                          value={field.value || ""}
                           onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, '')
-                            const number = Number(value) / 100
-                            field.onChange(number.toFixed(2))
+                            const value = e.target.value === "" ? "0" : e.target.value;
+                            field.onChange(value);
                           }}
                         />
                       </FormControl>
@@ -136,32 +143,137 @@ export default function NewProductPage() {
 
                 <FormField
                   control={form.control}
-                  name="category"
+                  name="weight"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Categoria</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione uma categoria" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {categories.map((category) => (
-                            <SelectItem key={category.id} value={category.slug}>
-                              {category.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>Peso (kg)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0.1"
+                          step="0.1"
+                          placeholder="0.0 kg"
+                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) => {
+                            const value = e.target.value === "" ? 0 : Number(e.target.value);
+                            field.onChange(value);
+                          }}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium">Dimensões (cm)</h4>
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="dimensions.length"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Comprimento (cm)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0.1"
+                            step="0.1"
+                            placeholder="0.0 cm"
+                            {...field}
+                            value={field.value || ""}
+                            onChange={(e) => {
+                              const value = e.target.value === "" ? 0 : Number(e.target.value);
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="dimensions.width"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Largura (cm)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0.1"
+                            step="0.1"
+                            placeholder="0.0 cm"
+                            {...field}
+                            value={field.value || ""}
+                            onChange={(e) => {
+                              const value = e.target.value === "" ? 0 : Number(e.target.value);
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="dimensions.height"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Altura (cm)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0.1"
+                            step="0.1"
+                            placeholder="0.0 cm"
+                            {...field}
+                            value={field.value || ""}
+                            onChange={(e) => {
+                              const value = e.target.value === "" ? 0 : Number(e.target.value);
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoria</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma categoria" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.slug}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}

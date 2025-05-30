@@ -28,11 +28,14 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
     defaultValues: {
       name: product?.name || "",
       description: product?.description || "",
-      price: product?.price || 0,
+      price: product?.price?.toString() || "0",
       category: product?.category || "",
-      images: product?.images || [],
+      images: product?.images?.map(img => img.url) || [],
+      mercadoPago: product?.mercadoPago || "",
+      weight: product?.weight || undefined,
+      dimensions: product?.dimensions || undefined
     },
-  })
+  } as const)
 
   const {
     handleSubmit,
@@ -44,11 +47,17 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
 
   const onSubmit = async (data: ProductFormData) => {
     try {
+      const productData = {
+        ...data,
+        price: Number(data.price),
+        images: data.images.map(url => ({ url, name: url.split('/').pop() || '', uid: url }))
+      }
+
       let result
       if (isEditing && product) {
-        result = await updateProduct(product.id, data)
+        result = await updateProduct(product.id, productData)
       } else {
-        result = await createProduct(data)
+        result = await createProduct(productData)
       }
 
       if (result.error) {
@@ -140,27 +149,139 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Preço (R$) *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="0.00"
-                        className="max-w-xs"
-                        {...field}
-                        onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preço (R$) *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="string"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          className="max-w-xs"
+                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) => {
+                            const value = e.target.value === "" ? "0" : e.target.value;
+                            field.onChange(value);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="weight"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Peso (kg)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0.1"
+                          step="0.1"
+                          placeholder="0.0"
+                          className="max-w-xs"
+                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) => {
+                            const value = e.target.value === "" ? 0 : Number(e.target.value);
+                            field.onChange(value);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium">Dimensões (cm)</h4>
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="dimensions.length"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Comprimento</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0.1"
+                            step="0.1"
+                            placeholder="0.0"
+                            {...field}
+                            value={field.value || ""}
+                            onChange={(e) => {
+                              const value = e.target.value === "" ? 0 : Number(e.target.value);
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="dimensions.width"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Largura</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0.1"
+                            step="0.1"
+                            placeholder="0.0"
+                            {...field}
+                            value={field.value || ""}
+                            onChange={(e) => {
+                              const value = e.target.value === "" ? 0 : Number(e.target.value);
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="dimensions.height"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Altura</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0.1"
+                            step="0.1"
+                            placeholder="0.0"
+                            {...field}
+                            value={field.value || ""}
+                            onChange={(e) => {
+                              const value = e.target.value === "" ? 0 : Number(e.target.value);
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Upload de Imagens */}
@@ -184,7 +305,6 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
               />
             </div>
 
-            {/* Botões de Ação */}
             <div className="flex space-x-4 pt-6 border-t border-border">
               <Button type="submit" disabled={isSubmitting} className="flex-1">
                 {isSubmitting ? "Salvando..." : isEditing ? "Atualizar Produto" : "Criar Produto"}

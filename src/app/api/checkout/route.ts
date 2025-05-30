@@ -11,13 +11,13 @@ export async function POST(request: Request) {
                 ...formData.products.map((product) => ({
                     id: product.id,
                     title: product.name,
-                    unit_price: product.price,
+                    unit_price: Number(product.price),
                     quantity: product.quantity,
                 })),
                 {
                     id: 'shipping',
                     title: `Frete - ${formData.shipping.name}`,
-                    unit_price: formData.shipping.price,
+                    unit_price: Number(formData.shipping.price),
                     quantity: 1,
                 },
             ],

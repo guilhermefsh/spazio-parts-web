@@ -44,7 +44,7 @@ export async function POST(request: Request) {
         const partsRef = collection(db, "parts")
         const docRef = await addDoc(partsRef, {
             ...validatedData,
-            price: parseFloat(validatedData.price),
+            price: validatedData.price,
             images: validatedData.images.map(url => ({
                 name: url.split('/').pop() || 'image',
                 uid: Math.random().toString(36).substring(7),

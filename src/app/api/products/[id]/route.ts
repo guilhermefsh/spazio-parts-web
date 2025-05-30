@@ -37,7 +37,9 @@ export async function GET(
             whatsapp: data.whatsapp,
             owner: data.owner,
             mercadoPago: data.mercadoPago,
-            frete: data.frete
+            frete: data.frete,
+            weight: data.weight,
+            dimensions: data.dimensions
         }
 
         return NextResponse.json({ product })
@@ -76,7 +78,7 @@ export async function PUT(
 
         await updateDoc(docRef, {
             ...validatedData,
-            price: parseFloat(validatedData.price),
+            price: validatedData.price,
             images,
             updated: Timestamp.now(),
         })

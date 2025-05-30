@@ -15,29 +15,45 @@ import type { Product } from "@/lib/types"
 import { convertPriceToNumber } from "@/utils/functions/convertPriceToNumber"
 import { generateWhatsAppUrl } from "@/utils/functions/generateWhatsAppUrl"
 import { useMercadoPago } from "@/hooks/useMercadoPago"
+import { maskCEP } from "@/utils/masks"
+import { formatDeliveryTime } from "@/utils/functions/formatDeliveryTime"
 
 interface ProductActionsProps {
   product: Product
-  onShippingSelect: (shipping: { name: string; price: number; estimatedDays: number } | null) => void
   quantity: number
   onQuantityChange: (quantity: number) => void
 }
 
 interface FreightOption {
+  id: number
   name: string
   price: number
-  days: string
-  type: "standard" | "express"
+  delivery_time: number
+  delivery_range: {
+    min: number
+    max: number
+  }
+  packages: number
+  additional_services: {
+    receipt: boolean
+    own_hand: boolean
+    collect: boolean
+  }
+  company: {
+    id: number
+    name: string
+    picture: string
+  }
 }
 
 export default function ProductActions({
   product,
   quantity,
-  onQuantityChange, onShippingSelect
+  onQuantityChange
 }: ProductActionsProps) {
   const [freightOptions, setFreightOptions] = useState<FreightOption[]>([])
   const [loadingFreight, setLoadingFreight] = useState(false)
-  const [selectedShipping, setSelectedShipping] = useState<{ name: string; price: number; estimatedDays: number } | null>(null)
+  const [selectedShipping, setSelectedShipping] = useState<FreightOption | null>(null)
   const { handleCheckout } = useMercadoPago()
 
   const price = convertPriceToNumber(product.price)
@@ -58,49 +74,75 @@ export default function ProductActions({
     })
   }
 
-  const onFreightSubmit = async () => {
+  const onFreightSubmit = async (data: FreightFormData) => {
     setLoadingFreight(true)
+    setFreightOptions([])
+    setSelectedShipping(null)
 
-    setTimeout(() => {
-      const mockOptions: FreightOption[] = [
-        {
-          name: "PAC",
-          price: 25.9,
-          days: "8 a 12 dias úteis",
-          type: "standard",
+    try {
+      const response = await fetch('/api/shipping', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        {
-          name: "SEDEX",
-          price: 45.9,
-          days: "3 a 5 dias úteis",
-          type: "express",
+        body: JSON.stringify({
+          cep: data.cep,
+          product: {
+            width: product.dimensions?.width || 0,
+            height: product.dimensions?.height || 0,
+            length: product.dimensions?.length || 0,
+            weight: product.weight || 0,
+            insurance_value: price * quantity,
+            quantity: quantity
+          }
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao calcular frete')
+      }
+
+      const shippingOption = {
+        id: result.id,
+        name: result.name,
+        price: parseFloat(result.price),
+        delivery_time: result.delivery_time,
+        delivery_range: {
+          min: result.delivery_range.min,
+          max: result.delivery_range.max
         },
-        {
-          name: "Transportadora",
-          price: 35.0,
-          days: "5 a 8 dias úteis",
-          type: "standard",
+        packages: result.packages.length,
+        additional_services: {
+          receipt: result.additional_services.receipt,
+          own_hand: result.additional_services.own_hand,
+          collect: result.additional_services.collect
         },
-      ]
-      setFreightOptions(mockOptions)
+        company: {
+          id: result.company.id,
+          name: result.company.name,
+          picture: result.company.picture
+        }
+      }
+
+      setFreightOptions([shippingOption])
+    } catch (error) {
+      console.error('Error calculating shipping:', error)
+      freightForm.setError('cep', {
+        type: 'manual',
+        message: 'Erro ao calcular frete. Tente novamente.',
+      })
+    } finally {
       setLoadingFreight(false)
-    }, 1500)
+    }
   }
 
   const handleShippingSelect = (option: FreightOption) => {
-    const shipping = {
-      name: option.name,
-      price: option.price,
-      estimatedDays: parseInt(option.days.split(" ")[0])
-    };
-    setSelectedShipping(shipping);
-    onShippingSelect(shipping);
+    setSelectedShipping(option)
   }
 
-  const formatCep = (value: string) => {
-    const numbers = value.replace(/\D/g, "")
-    return numbers.slice(0, 8)
-  }
+
 
   return (
     <div className="space-y-6">
@@ -154,8 +196,8 @@ export default function ProductActions({
                       <Input
                         placeholder="Digite seu CEP"
                         {...field}
-                        onChange={(e) => field.onChange(formatCep(e.target.value))}
-                        maxLength={8}
+                        onChange={(e) => field.onChange(maskCEP(e.target.value))}
+                        maxLength={9}
                       />
                     </FormControl>
                     <FormMessage />
@@ -172,26 +214,29 @@ export default function ProductActions({
             <div className="space-y-3">
               <Separator />
               <h4 className="font-medium text-foreground">Opções de entrega:</h4>
-              {freightOptions.map((option, index) => (
+              {freightOptions.map((option) => (
                 <div
-                  key={index}
-                  className="flex items-center justify-between p-3 bg-muted rounded-lg cursor-pointer hover:bg-muted/80"
+                  key={option.id}
+                  className={`flex items-center justify-between p-3 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 ${selectedShipping?.id === option.id ? 'ring-2 ring-primary' : ''
+                    }`}
                   onClick={() => handleShippingSelect(option)}
                 >
                   <div className="flex items-center space-x-3">
                     <Truck className="w-4 h-4 text-muted-foreground" />
                     <div>
-                      <p className="font-medium text-foreground">{option.name}</p>
-                      <p className="text-sm text-muted-foreground">{option.days}</p>
+                      <p className="font-medium text-foreground">{option.company.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatDeliveryTime(option.delivery_range.min, option.delivery_range.max)}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-foreground">
                       R$ {option.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     </p>
-                    {option.type === "express" && (
+                    {option.additional_services.own_hand && (
                       <Badge variant="secondary" className="text-xs">
-                        Expresso
+                        Mãos próprias
                       </Badge>
                     )}
                   </div>
@@ -209,7 +254,11 @@ export default function ProductActions({
           price: product.price,
           quantity,
           mercadoPago: product.mercadoPago
-        }, selectedShipping || undefined)}
+        }, selectedShipping ? {
+          name: selectedShipping.company.name,
+          price: selectedShipping.price,
+          estimatedDays: selectedShipping.delivery_range.max
+        } : undefined)}
         className="w-full bg-blue-500 hover:bg-blue-600 text-white h-11 px-4 rounded-md font-medium transition-colors"
       >
         <CreditCard className="w-5 h-5 mr-2" />
