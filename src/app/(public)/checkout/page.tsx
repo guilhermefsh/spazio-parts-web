@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckoutFormData, CheckoutStep } from '@/types/checkout';
 import { CheckoutStepper } from '@/components/checkout/CheckoutStepper';
@@ -32,7 +32,7 @@ const steps: CheckoutStep[] = [
     },
 ];
 
-export default function CheckoutPage() {
+function CheckoutContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const [currentStep, setCurrentStep] = useState(1);
@@ -182,5 +182,17 @@ export default function CheckoutPage() {
             </main>
             <Footer />
         </div>
+    );
+}
+
+export default function CheckoutPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+        }>
+            <CheckoutContent />
+        </Suspense>
     );
 } 

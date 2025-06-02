@@ -65,7 +65,7 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
       } else {
         router.push("/admin")
       }
-    } catch (error) {
+    } catch {
       setError("root", { message: "Erro inesperado. Tente novamente." })
     }
   }
@@ -290,6 +290,7 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
               <FormField
                 control={form.control}
                 name="images"
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>

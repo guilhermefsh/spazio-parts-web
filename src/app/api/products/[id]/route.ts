@@ -7,7 +7,7 @@ import { productSchema } from '@/lib/validations'
 
 export async function GET(
     request: Request,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         const { id } = await Promise.resolve(context.params)
@@ -54,13 +54,14 @@ export async function GET(
 
 export async function PUT(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await Promise.resolve(params)
         const body = await request.json()
         const validatedData = productSchema.parse(body)
 
-        const docRef = doc(db, "parts", params.id)
+        const docRef = doc(db, "parts", id)
         const snapshot = await getDoc(docRef)
 
         if (!snapshot.exists()) {
@@ -97,10 +98,11 @@ export async function PUT(
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { error } = await deleteProduct(params.id)
+        const { id } = await Promise.resolve(context.params)
+        const { error } = await deleteProduct(id)
 
         if (error) {
             return NextResponse.json(

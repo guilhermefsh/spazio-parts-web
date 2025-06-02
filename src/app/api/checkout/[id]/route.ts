@@ -1,13 +1,14 @@
+import { checkoutStore } from '@/lib/checkout-store';
 import { NextResponse } from 'next/server';
 
-import { checkoutStore } from '../init/route';
 
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
+    const id = (await context.params).id;
     try {
-        const checkout = checkoutStore.get(params.id);
+        const checkout = checkoutStore.get(id);
 
         if (!checkout) {
             return NextResponse.json(
@@ -17,7 +18,7 @@ export async function GET(
         }
 
         if (checkout.expiresAt < Date.now()) {
-            checkoutStore.delete(params.id);
+            checkoutStore.delete(id);
             return NextResponse.json(
                 { error: 'Checkout has expired' },
                 { status: 410 }

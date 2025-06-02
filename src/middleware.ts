@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
                 if (response.ok && data.verified) {
                     return NextResponse.redirect(new URL('/admin', request.url))
                 }
-            } catch (error) {
+            } catch {
                 return NextResponse.redirect(new URL('/admin/login', request.url))
             }
         }
@@ -56,7 +56,7 @@ export async function middleware(request: NextRequest) {
             }
 
             return NextResponse.next()
-        } catch (error) {
+        } catch {
             return NextResponse.redirect(new URL('/admin/login', request.url))
         }
     }

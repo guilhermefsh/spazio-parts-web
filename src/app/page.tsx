@@ -1,23 +1,42 @@
 "use client"
 
-import { use, useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
-import Header from "@/components/header"
 import ProductCard from "@/components/product-card"
 import ProductFilters from "@/components/product-filters"
+import { HomeSkeleton } from "@/components/home-skeleton"
 import type { Product } from "@/lib/types"
-import Footer from "@/components/footer"
 import { ErrorBoundary } from "react-error-boundary"
 
-const fetchProducts = fetch('/api/products').then(res => {
+const fetchProducts = async () => {
+  const res = await fetch(`/api/products`, {
+    cache: 'no-store'
+  })
   if (!res.ok) throw new Error('Failed to fetch products')
   return res.json()
-})
+}
 
 function ProductList() {
-  const { products: fetchedProducts } = use(fetchProducts)
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(fetchedProducts)
+  const [products, setProducts] = useState<Product[]>([])
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const data = await fetchProducts()
+        setProducts(data.products)
+        setFilteredProducts(data.products)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load products')
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadProducts()
+  }, [])
 
   useEffect(() => {
     const category = searchParams.get('categoria')
@@ -27,7 +46,7 @@ function ProductList() {
   }, [searchParams])
 
   const handleSearchChange = (search: string) => {
-    const filtered = fetchedProducts.filter(
+    const filtered = products.filter(
       (product: Product) =>
         product.name.toLowerCase().includes(search.toLowerCase()) ||
         product.description.toLowerCase().includes(search.toLowerCase()),
@@ -37,42 +56,27 @@ function ProductList() {
 
   const handleCategoryChange = (category: string) => {
     if (category === "all") {
-      setFilteredProducts(fetchedProducts)
+      setFilteredProducts(products)
     } else {
-      const filtered = fetchedProducts.filter((product: Product) => product.category === category)
+      const filtered = products.filter((product: Product) => product.category === category)
       setFilteredProducts(filtered)
     }
   }
 
+  if (loading) return <HomeSkeleton />
+  if (error) return <div>Error: {error}</div>
+
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
-      <main className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-foreground mb-4">
-            Peças Automotivas
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Descubra nossa coleção exclusiva de peças automotivas com design e qualidade superior
-          </p>
-        </div>
-
-        <ProductFilters onSearchChange={handleSearchChange} onCategoryChange={handleCategoryChange} />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground text-lg">Nenhum produto encontrado com os filtros selecionados.</p>
-          </div>
-        )}
-      </main>
-      <Footer />
+    <div className="container mx-auto px-4 py-8">
+      <ProductFilters
+        onSearchChange={handleSearchChange}
+        onCategoryChange={handleCategoryChange}
+      />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
+        {filteredProducts.map((product: Product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
     </div>
   )
 }
@@ -90,7 +94,9 @@ function ErrorFallback({ error }: { error: Error }) {
 export default function HomePage() {
   return (
     <ErrorBoundary fallback={<ErrorFallback error={new Error('Failed to load products')} />}>
-      <ProductList />
+      <Suspense fallback={<HomeSkeleton />}>
+        <ProductList />
+      </Suspense>
     </ErrorBoundary>
   )
 }

@@ -26,7 +26,7 @@ export async function GET() {
                 email: decodedClaims.email
             }
         })
-    } catch (error) {
+    } catch {
         return NextResponse.json(
             { verified: false, error: 'Invalid session' },
             { status: 401 }
