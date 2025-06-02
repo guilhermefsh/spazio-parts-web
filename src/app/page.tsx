@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, Suspense, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
 import ProductCard from "@/components/product-card"
 import ProductFilters from "@/components/product-filters"
@@ -23,6 +23,22 @@ function ProductList() {
   const [error, setError] = useState<string | null>(null)
   const searchParams = useSearchParams()
 
+  const handleCategoryChange = useCallback((category: string) => {
+    if (category === "all") {
+      setFilteredProducts(products)
+    } else {
+      const filtered = products.filter((product: Product) => product.category === category)
+      setFilteredProducts(filtered)
+    }
+  }, [products])
+
+  useEffect(() => {
+    const category = searchParams.get('categoria')
+    if (category) {
+      handleCategoryChange(category)
+    }
+  }, [handleCategoryChange, searchParams])
+
   useEffect(() => {
     const loadProducts = async () => {
       try {
@@ -38,13 +54,6 @@ function ProductList() {
     loadProducts()
   }, [])
 
-  useEffect(() => {
-    const category = searchParams.get('categoria')
-    if (category) {
-      handleCategoryChange(category)
-    }
-  }, [searchParams])
-
   const handleSearchChange = (search: string) => {
     const filtered = products.filter(
       (product: Product) =>
@@ -54,20 +63,14 @@ function ProductList() {
     setFilteredProducts(filtered)
   }
 
-  const handleCategoryChange = (category: string) => {
-    if (category === "all") {
-      setFilteredProducts(products)
-    } else {
-      const filtered = products.filter((product: Product) => product.category === category)
-      setFilteredProducts(filtered)
-    }
-  }
-
   if (loading) return <HomeSkeleton />
   if (error) return <div>Error: {error}</div>
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold text-white mb-8 text-center">
+        Peças Automotivas Premium
+      </h1>
       <ProductFilters
         onSearchChange={handleSearchChange}
         onCategoryChange={handleCategoryChange}

@@ -9,9 +9,12 @@ export default function Header() {
           <Image src="/logo.jpg" alt="logo" width={100} height={100} />
         </Link>
 
-        <nav>
+        <nav className="flex items-center space-x-4">
           <Link href="/sobre" className="text-foreground hover:text-primary transition-colors font-medium">
             Sobre
+          </Link>
+          <Link href="/informacoes" className="text-foreground hover:text-primary transition-colors font-medium">
+            Informações
           </Link>
         </nav>
       </div>

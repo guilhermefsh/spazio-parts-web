@@ -1,11 +1,9 @@
 "use client"
 
 import { use, useState } from "react"
-import Header from "@/components/header"
 import ProductImageCarousel from "@/components/product-image-carousel"
 import ProductActions from "@/components/product-actions"
 import ProductInfo from "@/components/product-info"
-import Footer from "@/components/footer"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -18,7 +16,7 @@ const fetchProduct = (id: string) => {
     return productCache.get(id)!
   }
 
-  const promise = fetch(`/api/products/${id}`, {
+  const promise = fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/products/${id}`, {
     cache: 'no-store'
   }).then(res => {
     if (!res.ok) throw new Error('Failed to fetch product')
@@ -37,7 +35,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">
@@ -77,7 +74,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         {/* {relatedProducts.length > 0 && <RelatedProducts products={relatedProducts} />} */}
       </main>
 
-      <Footer />
     </div>
   )
 }

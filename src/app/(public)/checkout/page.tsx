@@ -7,8 +7,6 @@ import { CheckoutStepper } from '@/components/checkout/CheckoutStepper';
 import { PersonalInfoForm } from '@/components/checkout/PersonalInfoForm';
 import { AddressForm } from '@/components/checkout/AddressForm';
 import { ReviewForm } from '@/components/checkout/ReviewForm';
-import Header from '@/components/header';
-import Footer from '@/components/footer';
 import { removeMask } from '@/utils/masks';
 
 const steps: CheckoutStep[] = [
@@ -170,7 +168,6 @@ function CheckoutContent() {
 
     return (
         <div className="min-h-screen bg-background">
-            <Header />
             <main className="container mx-auto px-4 py-8 max-w-4xl">
                 <div className="bg-background rounded-lg shadow-lg p-6">
                     <h1 className="text-3xl font-bold mb-8 text-center">Finalizar Compra</h1>
@@ -180,7 +177,6 @@ function CheckoutContent() {
                     </div>
                 </div>
             </main>
-            <Footer />
         </div>
     );
 }
