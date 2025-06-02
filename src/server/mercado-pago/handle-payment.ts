@@ -4,6 +4,7 @@ import { PaymentResponse } from "mercadopago/dist/clients/payment/commonTypes";
 import { sendOrderConfirmationEmail, sendOwnerNotificationEmail } from "@/lib/email";
 
 interface Product {
+  id: string;
   name: string;
   quantity: number;
   price: number;
@@ -25,12 +26,20 @@ export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
       throw new Error("No metadata found in payment data");
     }
 
-    // Parse the products and shipping data from metadata
     const products = JSON.parse(metadata.products || "[]") as Product[];
     const shipping = JSON.parse(metadata.shipping || "{}");
     const total = parseFloat(metadata.total || "0");
 
-    // Get payer information from payment data
+    const processedProducts = products.map(product => ({
+      ...product,
+      price: Number(product.price)
+    }));
+
+    const processedShipping = {
+      ...shipping,
+      price: Number(shipping.price)
+    };
+
     const payer = paymentData.payer;
     if (!payer || !payer.email) {
       throw new Error("No payer information found in payment data");
@@ -38,19 +47,18 @@ export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
 
     const address = payer.address as MercadoPagoAddress;
 
-    // Prepare order details for email
     const orderDetails = {
       name: payer.first_name + " " + (payer.last_name || ""),
       email: payer.email,
       phone: payer.phone?.number || "",
-      products: products.map((product) => ({
+      products: processedProducts.map((product) => ({
         name: product.name,
         quantity: product.quantity,
         price: product.price
       })),
       shipping: {
-        name: shipping.name,
-        price: shipping.price
+        name: processedShipping.name,
+        price: processedShipping.price
       },
       total: total,
       address: {
@@ -63,10 +71,8 @@ export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
       }
     };
 
-    // Send confirmation email to customer
     await sendOrderConfirmationEmail(orderDetails);
 
-    // Send notification email to owner
     await sendOwnerNotificationEmail(orderDetails);
 
     return { success: true };
