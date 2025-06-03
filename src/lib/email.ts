@@ -3,36 +3,36 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 interface OrderDetails {
+  name: string;
+  email: string;
+  phone: string;
+  products: Array<{
     name: string;
-    email: string;
-    phone: string;
-    products: Array<{
-        name: string;
-        quantity: number;
-        price: number;
-    }>;
-    shipping: {
-        name: string;
-        price: number;
-    };
-    total: number;
-    address: {
-        street: string;
-        number: string;
-        neighborhood: string;
-        city: string;
-        state: string;
-        cep: string;
-    };
+    quantity: number;
+    price: number;
+  }>;
+  shipping: {
+    name: string;
+    price: number;
+  };
+  total: number;
+  address: {
+    street: string;
+    number: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+    cep: string;
+  };
 }
 
 export async function sendOrderConfirmationEmail(orderDetails: OrderDetails) {
-    try {
-        const { data, error } = await resend.emails.send({
-            from: 'Spazio Parts <noreply@spazioparts.com.br>',
-            to: [orderDetails.email],
-            subject: 'Confirmação de Pedido - Spazio Parts',
-            html: `
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'Spazio Parts <noreply@spazioparts.com.br>',
+      to: `${orderDetails.name} <${orderDetails.email}>`,
+      subject: 'Confirmação de Pedido - Spazio Parts',
+      html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #333;">Confirmação de Pedido</h1>
           <p>Olá ${orderDetails.name},</p>
@@ -80,27 +80,27 @@ export async function sendOrderConfirmationEmail(orderDetails: OrderDetails) {
           </div>
         </div>
       `,
-        });
+    });
 
-        if (error) {
-            console.error('Error sending email:', error);
-            throw error;
-        }
-
-        return data;
-    } catch (error) {
-        console.error('Failed to send email:', error);
-        throw error;
+    if (error) {
+      console.error('Error sending email:', error);
+      throw error;
     }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to send email:', error);
+    throw error;
+  }
 }
 
 export async function sendOwnerNotificationEmail(orderDetails: OrderDetails) {
-    try {
-        const { data, error } = await resend.emails.send({
-            from: 'Spazio Parts <noreply@spazioparts.com.br>',
-            to: ['alves.evel@yahoo.com.br'], // Email do dono do negócio
-            subject: '🚨 Nova Venda Realizada - Spazio Parts',
-            html: `
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'Spazio Parts <noreply@spazioparts.com.br>',
+      to: 'Spazio Parts <alves.evel@yahoo.com.br>',
+      subject: '🚨 Nova Venda Realizada - Spazio Parts',
+      html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #333; background-color: #f8f9fa; padding: 20px; border-radius: 5px;">
             🎉 Nova Venda Realizada!
@@ -161,16 +161,16 @@ export async function sendOwnerNotificationEmail(orderDetails: OrderDetails) {
           </div>
         </div>
       `,
-        });
+    });
 
-        if (error) {
-            console.error('Error sending owner notification email:', error);
-            throw error;
-        }
-
-        return data;
-    } catch (error) {
-        console.error('Failed to send owner notification email:', error);
-        throw error;
+    if (error) {
+      console.error('Error sending owner notification email:', error);
+      throw error;
     }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to send owner notification email:', error);
+    throw error;
+  }
 } 

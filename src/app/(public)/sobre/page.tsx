@@ -25,14 +25,15 @@ export default function AboutPage() {
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-foreground">Nossa História</h2>
               <p className="text-muted-foreground leading-relaxed">
-                Fundada em 1985 na região da Emília-Romanha, berço da indústria automobilística italiana, a AutoParts
-                Italia nasceu da paixão por carros e pela busca incessante pela perfeição.
+                Desde 2021, a Spazioparts se destaca como referência na fabricação de peças de época para o Fiat 147 e seus derivados, unindo qualidade e compromisso com a originalidade.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                Com mais de 35 anos de experiência, desenvolvemos peças automotivas que combinam o design italiano
-                clássico com tecnologia de ponta, oferecendo produtos que não apenas melhoram a performance dos
-                veículos, mas também expressam personalidade e estilo.
+                Atendendo clientes em todo o Brasil, oferecemos soluções que já não se encontram no mercado, permitindo que projetos de restauração automotiva recuperem toda a essência e autenticidade dos modelos clássicos.
               </p>
+              <p className="text-muted-foreground leading-relaxed">
+                Com foco contínuo na excelência, trabalhamos para superar expectativas e consolidar cada vez mais nossa presença no setor de peças clássicas automotivas.
+              </p>
+
             </div>
           </div>
 

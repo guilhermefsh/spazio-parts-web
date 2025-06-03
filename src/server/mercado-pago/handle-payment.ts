@@ -45,6 +45,12 @@ export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
       throw new Error("No payer information found in payment data");
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(payer.email)) {
+      throw new Error("Invalid email format received from payment data");
+    }
+
     const address = payer.address as MercadoPagoAddress;
 
     const orderDetails = {
