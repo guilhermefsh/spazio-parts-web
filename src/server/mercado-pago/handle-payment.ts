@@ -42,6 +42,7 @@ export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
+      console.log(email);
       throw new Error("Invalid email format received from metadata");
     }
 
