@@ -22,6 +22,8 @@ interface MercadoPagoAddress {
 export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
   try {
     const metadata = paymentData.metadata;
+    console.dir(paymentData, { depth: null });
+
     if (!metadata) {
       throw new Error("No metadata found in payment data");
     }

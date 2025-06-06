@@ -254,11 +254,11 @@ export default function ProductActions({
           price: product.price,
           quantity,
           mercadoPago: product.mercadoPago
-        }, selectedShipping ? {
-          name: selectedShipping.company.name,
-          price: selectedShipping.price,
-          estimatedDays: selectedShipping.delivery_range.max
-        } : undefined)}
+        }, {
+          name: 'teste',
+          price: 0.20,
+          estimatedDays: 2
+        })}
         className="w-full bg-blue-500 hover:bg-blue-600 text-white h-11 px-4 rounded-md font-medium transition-colors"
       >
         <CreditCard className="w-5 h-5 mr-2" />
