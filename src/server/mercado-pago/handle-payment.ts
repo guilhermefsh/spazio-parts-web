@@ -10,27 +10,40 @@ interface Product {
   price: number;
 }
 
-interface MercadoPagoAddress {
-  street_name?: string;
-  street_number?: string;
-  neighborhood?: string;
-  city?: string;
-  federal_unit?: string;
-  zip_code?: string;
+interface Shipping {
+  name: string;
+  price: number;
+  estimatedDays?: number;
+}
+
+interface Address {
+  street: string;
+  number: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  cep: string;
 }
 
 export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
   try {
     const metadata = paymentData.metadata;
-    console.dir(paymentData, { depth: null });
-
     if (!metadata) {
       throw new Error("No metadata found in payment data");
     }
 
+    const email = metadata.email;
+    const name = metadata.name;
+    const phone = metadata.phone;
+    const address = JSON.parse(metadata.address || "{}") as Address;
     const products = JSON.parse(metadata.products || "[]") as Product[];
-    const shipping = JSON.parse(metadata.shipping || "{}");
+    const shipping = JSON.parse(metadata.shipping || "{}") as Shipping;
     const total = parseFloat(metadata.total || "0");
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error("Invalid email format received from metadata");
+    }
 
     const processedProducts = products.map(product => ({
       ...product,
@@ -42,23 +55,10 @@ export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
       price: Number(shipping.price)
     };
 
-    const payer = paymentData.payer;
-    if (!payer || !payer.email) {
-      throw new Error("No payer information found in payment data");
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(payer.email)) {
-      throw new Error("Invalid email format received from payment data");
-    }
-
-    const address = payer.address as MercadoPagoAddress;
-
     const orderDetails = {
-      name: payer.first_name + " " + (payer.last_name || ""),
-      email: payer.email,
-      phone: payer.phone?.number || "",
+      name,
+      email,
+      phone,
       products: processedProducts.map((product) => ({
         name: product.name,
         quantity: product.quantity,
@@ -68,19 +68,18 @@ export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
         name: processedShipping.name,
         price: processedShipping.price
       },
-      total: total,
+      total,
       address: {
-        street: address?.street_name || "",
-        number: address?.street_number || "",
-        neighborhood: address?.neighborhood || "",
-        city: address?.city || "",
-        state: address?.federal_unit || "",
-        cep: address?.zip_code || ""
+        street: address.street || "",
+        number: address.number || "",
+        neighborhood: address.neighborhood || "",
+        city: address.city || "",
+        state: address.state || "",
+        cep: address.cep || ""
       }
     };
 
     await sendOrderConfirmationEmail(orderDetails);
-
     await sendOwnerNotificationEmail(orderDetails);
 
     return { success: true };

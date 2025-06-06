@@ -49,6 +49,10 @@ export async function POST(request: Request) {
             auto_return: 'approved',
             external_reference: `ORDER-${Date.now()}`,
             metadata: {
+                email: formData.email,
+                name: formData.name,
+                phone: formData.phone,
+                address: JSON.stringify(formData.address),
                 products: JSON.stringify(formData.products),
                 shipping: JSON.stringify(formData.shipping),
                 total: formData.total,
