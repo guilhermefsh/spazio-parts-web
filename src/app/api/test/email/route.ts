@@ -16,6 +16,7 @@ export async function POST(request: Request) {
             name: "João Silva",
             email: "joao@exemplo.com",
             phone: "11999999999",
+            cpf: "12345678901",
             products: [
                 {
                     name: "Peça Teste 1",

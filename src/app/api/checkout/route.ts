@@ -52,6 +52,7 @@ export async function POST(request: Request) {
                 email: formData.email,
                 name: formData.name,
                 phone: formData.phone,
+                cpf: formData.cpf,
                 address: JSON.stringify(formData.address),
                 products: JSON.stringify(formData.products),
                 shipping: JSON.stringify(formData.shipping),

@@ -29,7 +29,7 @@ interface OrderDetails {
 export async function sendOrderConfirmationEmail(orderDetails: OrderDetails) {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Spazio Parts <noreply@spazioparts.com.br>',
+      from: 'Spazio Parts <noreply@spazioparts.com>',
       to: `${orderDetails.name} <${orderDetails.email}>`,
       subject: 'Confirmação de Pedido - Spazio Parts',
       html: `
@@ -97,8 +97,8 @@ export async function sendOrderConfirmationEmail(orderDetails: OrderDetails) {
 export async function sendOwnerNotificationEmail(orderDetails: OrderDetails) {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Spazio Parts <noreply@spazioparts.com.br>',
-      to: 'Spazio Parts <alves.evel@yahoo.com.br>',
+      from: 'Spazio Parts <noreply@spazioparts.com>',
+      to: 'Spazio Parts <zoiaofiat147@gmail.com>',
       subject: '🚨 Nova Venda Realizada - Spazio Parts',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

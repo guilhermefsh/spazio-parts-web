@@ -35,6 +35,7 @@ export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
     const email = metadata.email;
     const name = metadata.name;
     const phone = metadata.phone;
+    const cpf = metadata.cpf;
     const address = JSON.parse(metadata.address || "{}") as Address;
     const products = JSON.parse(metadata.products || "[]") as Product[];
     const shipping = JSON.parse(metadata.shipping || "{}") as Shipping;
@@ -60,6 +61,7 @@ export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
       name,
       email,
       phone,
+      cpf,
       products: processedProducts.map((product) => ({
         name: product.name,
         quantity: product.quantity,
